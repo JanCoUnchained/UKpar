@@ -1,0 +1,18 @@
+---
+title: "exploring"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(pacman)
+p_load(tidyverse, ggunchained)
+```
+
+# making sense of the files
+```{r}
+ a <- read_delim("mc-midprep-20181211.tsv", 
+     "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
