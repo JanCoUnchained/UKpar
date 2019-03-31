@@ -7,12 +7,64 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(pacman)
-p_load(tidyverse, ggunchained)
+p_load(tidyverse, ggunchained, topicmodels)
 ```
 
 # making sense of the files
+A: the rawish set, data from 1803 to 1908
 ```{r}
- a <- read_delim("mc-midprep-20181211.tsv", 
+a <- read_delim("mc-midprep-20181211.tsv", 
      "\t", escape_double = FALSE, trim_ws = TRUE)
+
+a19 <- a %>%
+  filter(YEAR == "1908")
+```
+
+B: cleaned data
+```{r}
+b <- read_delim("no_stopwords_misspellings_nonalpha.txt", 
+                 delim = "\t", col_names = FALSE)
+
+b2 <- b %>%
+  filter(str_detect(X2, "[0-9][0-9][0-9][0-9]")) %>%
+  rename(doc_id = X1) %>%
+  select(-X2) %>%
+  tidytext::unnest_tokens(token, X3, token = "words")
+
+rm(b)
+```
+
+C: out
+```{r}
+out = count(b2, doc_id, token) %>%
+   ungroup() %>%
+   mutate(hash = as.integer(as.factor(token))) %>%
+   arrange(as.numeric(doc_id), desc(n)) %>%
+   unite("freq", hash, n, sep = ":", remove = FALSE)
+
+out2 = out %>%
+   split(out$doc_id) %>%
+   map_chr(~str_c(.$freq, collapse = " ")) %>%
+   str_c("| ", .)
+
+write_lines(out2, "hashed_lda_ip.vw")
+```
+
+
+AFTER VOWPAL
+```{r}
+vw_out <- read_delim("doc_topic.model", delim = " ", col_names = F)
+
+pass1 <- vw_out %>%
+  rownames_to_column() %>%
+  slice(1:106809)
+
+pass2 <- vw_out %>%
+  rownames_to_column() %>%
+  slice(106810:213618)
+
+pass10 <- vw_out %>%
+  rownames_to_column() %>%
+  slice(961282:1068090)
 ```
 
