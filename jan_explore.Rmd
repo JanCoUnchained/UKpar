@@ -7,7 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(pacman)
-p_load(tidyverse, ggunchained, topicmodels)
+p_load(tidyverse, ggunchained, topicmodels, tidytext)
 ```
 
 # making sense of the files
@@ -16,8 +16,9 @@ A: the rawish set, data from 1803 to 1908
 a <- read_delim("mc-midprep-20181211.tsv", 
      "\t", escape_double = FALSE, trim_ws = TRUE)
 
-a19 <- a %>%
-  filter(YEAR == "1908")
+# tagged dataset (cannot be used to match vw output from no_stopwords)
+# a <- read_delim("membercontributions-20181210.tsv", 
+#                 "\t", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 B: cleaned data
@@ -30,6 +31,11 @@ b2 <- b %>%
   rename(doc_id = X1) %>%
   select(-X2) %>%
   tidytext::unnest_tokens(token, X3, token = "words")
+
+b3 <- b %>%
+  filter(str_detect(X2, "[0-9][0-9][0-9][0-9]")) %>%
+  rename(doc_id = X1)
+  
 
 rm(b)
 ```
