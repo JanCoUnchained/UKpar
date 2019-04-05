@@ -1,0 +1,57 @@
+---
+title: "jo_raw_data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# lite
+library(tidyverse)
+library(tidytext)
+library(udpipe)
+
+# all
+library(pacman)
+p_load(tidyverse, ggunchained, topicmodels, tidytext, udpipe)
+```
+
+Assuming this is the raw data
+```{r data import}
+raw <- read_delim("membercontributions-20181210.tsv", 
+                "\t", escape_double = FALSE, trim_ws = TRUE,
+                n_max = 10000)
+```
+
+# tokenize
+```{r punct}
+raw2 <- raw %>%
+  as_tibble() %>%
+  mutate(BILL = str_remove_all(BILL, "[:punct:]"),
+         BILL = tolower(BILL),
+         MEMBER = str_remove_all(MEMBER, "[:punct:]"),
+         MEMBER = tolower(MEMBER),
+         SPEECH_ACT = str_remove_all(SPEECH_ACT, "[:punct:]"),
+         SPEECH_ACT = tolower(SPEECH_ACT)
+         )
+```
+
+# lemmatize
+```{r lemma}
+en <- udpipe_download_model(language = "english")
+udmodel_en <- udpipe_load_model(file = en$file_model)
+
+lemma <- udpipe_annotate(udmodel_en, x = raw2$SPEECH_ACT)
+lemma <- as_tibble(lemma)
+```
+
+# stopwords
+```{r stopwords}
+raw3 <- raw2 %>%
+  unnest_tokens(word, SPEECH_ACT) %>%
+  anti_join(stop_words, by = "word") %>%
+  nest(word) %>%
+  mutate(text = map(data, unlist), 
+         text = map_chr(text, paste, collapse = " ")) %>%
+  select(-data)
+```

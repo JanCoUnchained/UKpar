@@ -1,0 +1,15 @@
+---
+title: "guldi_tar_analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(pacman)
+p_load(tidyverse, ggunchained, topicmodels, tidytext)
+```
+
+put the data archive downloaded from 
+http://crdh.rrchnm.org/essays/v01-01-synthesis-and-large-scale-textual-corpora/
+here
